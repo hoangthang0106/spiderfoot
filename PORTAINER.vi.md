@@ -1,10 +1,12 @@
-# Android: sử dụng Repository reference `refs/heads/master` (nhánh mặc định)
+> **SỬA LỖI GIT TRÊN ĐIỆN THOẠI:** [Mở hướng dẫn reference not found](./PORTAINER_FIX_GIT_ANDROID.vi.md). Repo hiện có cả `refs/heads/main` và `refs/heads/master`; ưu tiên nhập `refs/heads/main` để kiểm tra lỗi Source. Không đổi port 29001 khi chưa kiểm kê Docker host.
+
+# Android: sử dụng Repository reference `refs/heads/main` (nhánh mặc định)
 
 Các file `portainer-compose.yml` và `Dockerfile.portainer` đã được đặt trực tiếp vào `master`, không cần chọn nhánh phụ. Cấu hình yêu cầu nhập `LAN_IP`, `OSINT_AUTH_USER`, `OSINT_AUTH_PASSWORD` thủ công. Host port mặc định 29001 chưa xác minh trống.
 
 # SpiderFoot — Cài qua Portainer Git (mạng LAN)
 
-Dùng fork [hoangthang0106/spiderfoot](https://github.com/hoangthang0106/spiderfoot), nhánh **`master`**; không thay đổi Compose gốc.
+Dùng fork [hoangthang0106/spiderfoot](https://github.com/hoangthang0106/spiderfoot), nhánh **`main`**; không thay đổi Compose gốc.
 **Cổng 29001/TCP là đề xuất chưa kiểm tra trên VM/LXC thật.**
 
 **Quy hoạch port chung:** [IT-MANAGER / sổ port](https://github.com/hoangthang0106/thang/blob/main/ports/PORT_REGISTRY.vi.md). Dải **29001–29099** dành riêng cho OSINT, số tiếp theo dự kiến cấp mới là **29006** (vẫn cần kiểm tra trực tiếp). Các port ứng dụng (5000/5001/8080/9005) chỉ tồn tại bên trong network Docker từng Stack, **không publish ra host và không xung đột** với container khác.
@@ -50,7 +52,7 @@ Trong Portainer → **Environment variables**, đặt `OSINT_AUTH_PASSWORD` là 
 
 - **Stack name:** `osint-spiderfoot`
 - **Repository URL:** `https://github.com/hoangthang0106/spiderfoot`
-- **Reference:** `refs/heads/master`
+- **Reference:** `refs/heads/main`
 - **Compose path:** `portainer-compose.yml`
 - **Environment variables** (nhập tay trước Deploy):
   - `LAN_IP`: IP thật trên interface của VM/LXC đang chạy Docker, không mặc định dùng IP Proxmox host.
