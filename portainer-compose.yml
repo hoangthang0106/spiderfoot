@@ -22,11 +22,12 @@ services:
       - "${LAN_IP:?ENTER_LAN_IP}:${SPIDERFOOT_HOST_PORT:-29001}:80/tcp"
     environment:
       AUTH_USER: "${OSINT_AUTH_USER:?ENTER_USERNAME}"
-      AUTH_HASH: "${OSINT_AUTH_HASH:?ENTER_BCRYPT_HASH}"
+      AUTH_PASSWORD: "${OSINT_AUTH_PASSWORD:?ENTER_PASSWORD_IN_PORTAINER}"
     entrypoint: ["/bin/sh", "-ec"]
     command:
       - |
-        printf '%s\n' ':80 {' '  basic_auth {' "    $$AUTH_USER $$AUTH_HASH" '  }' '  reverse_proxy spiderfoot:5001' '}' > /etc/caddy/Caddyfile
+        HASH=$(caddy hash-password --algorithm bcrypt --plaintext "$AUTH_PASSWORD")
+        printf '%s\n' ':80 {' '  basic_auth {' "    $AUTH_USER $HASH" '  }' '  reverse_proxy spiderfoot:5001' '}' > /etc/caddy/Caddyfile
         caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
         exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
 volumes:
