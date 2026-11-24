@@ -1,3 +1,5 @@
+> **SỬA LỖI GIT TRÊN ĐIỆN THOẠI:** [Mở hướng dẫn reference not found](./PORTAINER_FIX_GIT_ANDROID.vi.md). Repo hiện có cả `refs/heads/main` và `refs/heads/master`; ưu tiên nhập `refs/heads/main` để kiểm tra lỗi Source. Không đổi port 29001 khi chưa kiểm kê Docker host.
+
 # Android: sử dụng Repository reference `refs/heads/master` (nhánh mặc định)
 
 Các file `portainer-compose.yml` và `Dockerfile.portainer` đã được đặt trực tiếp vào `master`, không cần chọn nhánh phụ. Cấu hình yêu cầu nhập `LAN_IP`, `OSINT_AUTH_USER`, `OSINT_AUTH_PASSWORD` thủ công. Host port mặc định 29001 chưa xác minh trống.
