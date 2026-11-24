@@ -1,0 +1,12 @@
+FROM python:3.11-slim-bookworm
+ENV DEBIAN_FRONTEND=noninteractive PYTHONUNBUFFERED=1 PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    SPIDERFOOT_DATA=/var/lib/spiderfoot SPIDERFOOT_LOGS=/var/lib/spiderfoot/log SPIDERFOOT_CACHE=/var/lib/spiderfoot/cache
+WORKDIR /home/spiderfoot
+RUN apt-get update && apt-get install -y --no-install-recommends gcc g++ git libffi-dev libssl-dev libxml2-dev libxslt1-dev libjpeg-dev libopenjp2-7-dev zlib1g-dev && rm -rf /var/lib/apt/lists/*
+COPY requirements.txt ./requirements.txt
+RUN python -m pip install --no-cache-dir -r requirements.txt
+COPY . .
+RUN groupadd -r spiderfoot && useradd -r -g spiderfoot -d /home/spiderfoot spiderfoot && mkdir -p /var/lib/spiderfoot/log /var/lib/spiderfoot/cache && chown -R spiderfoot:spiderfoot /var/lib/spiderfoot /home/spiderfoot
+USER spiderfoot
+EXPOSE 5001
+CMD ["python", "sf.py", "-l", "0.0.0.0:5001"]
