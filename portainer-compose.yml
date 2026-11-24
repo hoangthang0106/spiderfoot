@@ -1,0 +1,35 @@
+# SpiderFoot; Portainer LAN Stack; fork: https://github.com/hoangthang0106/spiderfoot
+# Host 18994/tcp is a CANDIDATE only. Confirm on actual VM/LXC before deployment.
+services:
+  spiderfoot:
+    build:
+      context: .
+      dockerfile: Dockerfile.portainer
+    image: local/osint-spiderfoot:portainer
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - spiderfoot_data:/var/lib/spiderfoot
+    expose:
+      - "5001"
+  gateway:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - spiderfoot
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${LAN_IP:?ENTER_LAN_IP}:${SPIDERFOOT_HOST_PORT:-18994}:80/tcp"
+    environment:
+      AUTH_USER: "${OSINT_AUTH_USER:?ENTER_USERNAME}"
+      AUTH_HASH: "${OSINT_AUTH_HASH:?ENTER_BCRYPT_HASH}"
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        printf '%s\n' ':80 {' '  basic_auth {' "    $$AUTH_USER $$AUTH_HASH" '  }' '  reverse_proxy spiderfoot:5001' '}' > /etc/caddy/Caddyfile
+        caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+        exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+volumes:
+  spiderfoot_data:
