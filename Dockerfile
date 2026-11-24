@@ -12,15 +12,15 @@
 # Usage:
 #
 #   sudo docker build -t spiderfoot .
-#   sudo docker run -p 5001:5001 --security-opt no-new-privileges spiderfoot
+#   sudo docker run -p 18994:18994 --security-opt no-new-privileges spiderfoot
 #
 # Using Docker volume for spiderfoot data
 #
-#   sudo docker run -p 5001:5001 -v /mydir/spiderfoot:/var/lib/spiderfoot spiderfoot
+#   sudo docker run -p 18994:18994 -v /mydir/spiderfoot:/var/lib/spiderfoot spiderfoot
 #
 # Using SpiderFoot remote command line with web server
 #
-#   docker run --rm -it spiderfoot sfcli.py -s http://my.spiderfoot.host:5001/
+#   docker run --rm -it spiderfoot sfcli.py -s http://my.spiderfoot.host:18994/
 #
 # Running spiderfoot commands without web server (can optionally specify volume)
 #
@@ -78,8 +78,8 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 USER spiderfoot
 
-EXPOSE 5001
+EXPOSE 18994
 
 # Run the application.
 ENTRYPOINT ["/opt/venv/bin/python"]
-CMD ["sf.py", "-l", "0.0.0.0:5001"]
+CMD ["sf.py", "-l", "0.0.0.0:18994"]
