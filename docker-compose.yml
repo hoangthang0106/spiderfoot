@@ -1,32 +1,27 @@
-version: "3"
-
-# Basic usage:
-#     $ docker-compose up
-#
-# Dev environment (code directory mapped into container):
-#     $ docker-compose -f docker-compose.yml -f docker-compose-dev.yml up
-#
-# Full image (all CLI tools installed):
-#     $ docker-compose -f docker-compose.yml -f docker-compose-full.yml up
-#
-# Spiderfoot data resides in a Docker volume
-#
-#     $ ls -lh /var/lib/docker/volumes/spiderfoot_spiderfoot-data/_data
-#       total 104K
-#       drwxr-xr-x 2 user user 4.0K Sep 22 09:51 cache
-#       -rw-r--r-- 1 user user 100K Sep 22 15:19 spiderfoot.db
-
+# SpiderFoot Portainer Stack - no reverse proxy, no added services.
+# This is the compose file used by the existing Git-managed stack "spiderfoot".
+# Use only in trusted LAN; there is no gateway login.
+# Verify TCP 18894 is unused on the actual Docker host before updating.
 services:
   spiderfoot:
-    build:
-      context: ./
+    image: spiderfoot:latest
+    container_name: spiderfoot
+    restart: unless-stopped
+    environment:
+      OSINT_AUTH_USER: "${OSINT_AUTH_USER:?SET_LOGIN_NAME}"
+      OSINT_AUTH_PASSWORD: "${OSINT_AUTH_PASSWORD:?SET_LOGIN_PASSWORD}"
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        umask 077
+        printf '%s:%s\n' "$$OSINT_AUTH_USER" "$$OSINT_AUTH_PASSWORD" > /var/lib/spiderfoot/passwd
+        exec python sf.py -l 0.0.0.0:18894
+    ports:
+      - "${LAN_IP:?SET_DOCKER_HOST_LAN_IP}:${SPIDERFOOT_HOST_PORT:-18894}:18894/tcp"
     volumes:
       - spiderfoot-data:/var/lib/spiderfoot
-    image: spiderfoot
-    container_name: spiderfoot
-    ports:
-      - "5001:5001"
-    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
 
 volumes:
   spiderfoot-data:
