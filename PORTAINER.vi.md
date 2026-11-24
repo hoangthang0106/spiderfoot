@@ -1,56 +1,52 @@
-# SpiderFoot — Portainer Android — 18894:18894
+# SpiderFoot trên Portainer Android — một container, không có reverse proxy
 
-**Chỉ cấu hình GitHub đã cập nhật. Không có bằng chứng port 18894/TCP thực tế trống hoặc container đã triển khai thành công trên VM/LXC Docker.**
+**Đã sửa cấu hình trong fork. Chưa cập nhật container đang chạy trên máy thực.**
 
 ## Công dụng
+SpiderFoot thu thập và đối chiếu dữ liệu OSINT công khai qua email, username, domain, IP, số điện thoại và các nguồn liên quan. Không chứng minh được toàn bộ tài khoản của một cá nhân.
 
-Thu thập/đối chiếu dữ liệu công khai liên quan email, username, số điện thoại, IP/domain; không xác nhận được mọi tài khoản đăng ký.
+## Cấu hình đang dùng
+- Git repository: `https://github.com/hoangthang0106/spiderfoot.git`
+- Git branch: `refs/heads/main` (hoặc `refs/heads/master`).
+- Git compose path: **`docker-compose.yml`**.
+- Docker image: **`spiderfoot:latest`** (image local đã thấy trong ảnh).
+- Stack: **`spiderfoot`** (giữ tên).
+- Số container mong muốn sau cập nhật: **1 — `spiderfoot`**.
+- Host publish: **`LAN_IP:18894 -> SpiderFoot:18894/tcp`**, không có host 5001.
+- Volume giữ nguyên: **`spiderfoot-data:/var/lib/spiderfoot`**, giữ dữ liệu/scan.
+- **Xác thực:** SpiderFoot đã có native HTTP Digest authentication, tự đọc `/var/lib/spiderfoot/passwd`. Compose ghi `username:password` vào file volume bằng quyền 0600 ở mỗi lần khởi động; không cần container proxy.
+- Không tự cài đặt thêm container, gateway, web server.
 
-## Cấu hình
-
-- Fork: https://github.com/hoangthang0106/spiderfoot
-- Git reference: `refs/heads/main`
-- Compose path: **`docker-compose.yml`** (file mặc định đã đồng bộ với `portainer-compose.yml`)
-- Stack name: `spiderfoot` — GIỮ NGUYÊN tên Stack đang chạy, không tạo trùng
-- **Published Ports dự kiến:** `18894:18894/tcp` trên container gateway. Ứng dụng cũng nghe `18894` bên trong Docker network, nhưng **không publish trực tiếp**.
-- Host port ở trên thuộc dãy 18894–18898, tiếp sau **18893 (Synaplan Lite)** do người dùng xác nhận là cổng đã sử dụng.
-- Docker Compose mặc định sử dụng lại image spiderfoot:latest và volume spiderfoot-data của Stack spiderfoot đang có, không bắt build lại. Bản ảnh trước còn chạy 5001:5001; phải UPDATE Stack hiện tại, KHÔNG tạo Stack thứ hai.
-
-## Bước 1 — Kiểm tra đúng máy Docker, lệnh chỉ đọc
-
+## Trước khi Update Stack (bắt buộc)
+Chạy trên **VM/LXC Docker thực tế**, các lệnh chỉ đọc:
 ```bash
 hostname -I
 ss -ltnp '( sport = :18894 )'
-docker ps -a --format 'table {{.Names}}\t{{.Image}}\t{{.Ports}}'
+docker ps -a --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'
 docker ps -aq | xargs -r docker inspect --format '{{.Name}} {{json .HostConfig.PortBindings}}'
+docker inspect spiderfoot --format '{{json .Mounts}}'
 ```
+Nếu cổng 18894 có listener hoặc binding của container khác, **không Update** trước khi chọn port trống và sửa sổ port. Xác minh volume có dữ liệu, nên sao lưu nếu quan trọng. Không xóa Stack/volume cũ.
 
-Kiểm tra listener và cả port được khai báo cho container đang dừng; không tự kết luận từ sổ GitHub. **Không dừng dịch vụ cũ để lấy port**. Nếu 18894 bị chiếm, không Deploy; kiểm kê rồi cấp cổng khác và sửa sổ port trước.
+## Cập nhật bằng điện thoại
+1. Portainer → **Stacks → spiderfoot** (Stack đang chạy, đừng tạo Stack thứ hai).
+2. **Managed by Git**: `https://github.com/hoangthang0106/spiderfoot` → `refs/heads/main` → **`docker-compose.yml`**. Nếu file khác, sửa `Edit stack settings` về đúng file.
+3. Environment variables trong Stack (không ghi vào GitHub): 
+   - `LAN_IP`: địa chỉ LAN thực tế trên VM/LXC chạy Docker.
+   - `OSINT_AUTH_USER`: username do bạn tự chọn.
+   - `OSINT_AUTH_PASSWORD`: mật khẩu mạnh bạn tự đặt. Không cần hash.
+   - `SPIDERFOOT_HOST_PORT`: chỉ cần nếu 18894 không dùng được, sau khi đã kiểm tra.
+4. Sau khi kiểm tra port trống và backup, chọn **Pull and redeploy / Update the stack**. **Không bật luôn pull image `spiderfoot:latest` nếu đó là image local**, không xóa volumes. Update sẽ tái tạo container (có gián đoạn ngắn).
+5. Kiểm tra **Containers**. `spiderfoot` Running, Published Ports `18894:18894`. Không còn gateway trong Stack.
+6. Nếu `spiderfoot-gateway-1` vẫn tồn tại ngoài Stack như container mồ côi, xác minh nó chỉ thuộc SpiderFoot cũ trước khi chủ động dừng/xóa đúng container đó; không xóa bất kỳ volume nào.
+7. Android trong cùng LAN: mở `http://LAN_IP:18894`, nhập username/password đã chọn. Nếu không thấy màn hình login, xem `Containers → spiderfoot → Logs`, tìm thông báo `Enabling authentication based on supplied passwd file`.
 
-## Bước 2 — Mở Portainer bằng điện thoại
+Nếu Portainer Git Clone tiếp tục lỗi, **không xóa Stack**: xem file [portainer-existing-image.yml](./portainer-existing-image.yml) dùng Web editor của Stack hiện tại (không cần build, dùng image local đã có).
 
-1. Chọn đúng **Environment / Docker endpoint**.
-2. Vào **Stacks → spiderfoot** đang có. Giữ Stack này và volume cũ, chỉ cập nhật thông qua Git / Editor sau khi kiểm tra và sao lưu.
-3. Repository URL: `https://github.com/hoangthang0106/spiderfoot.git`.
-4. Reference: `refs/heads/main`. Compose path: `docker-compose.yml`.
-5. Git authentication: `None` nếu repo công khai; tắt GitOps auto-update khi thử.
-6. Phần **Environment variables**: nhập tay
-   - `LAN_IP` = IP LAN thật của đúng VM/LXC có Docker (không đoán theo IP đã nhắc trong cuộc trò chuyện).
-   - `OSINT_AUTH_USER` = tên đăng nhập bạn tự đặt.
-   - `OSINT_AUTH_PASSWORD` = mật khẩu mạnh bạn tự đặt (KHÔNG cần hash).
-   - `SPIDERFOOT_HOST_PORT` = tùy chọn, **không nhập** nếu dùng 18894. Nếu phải đổi port, vế bên trong gateway vẫn là 18894 và mapping không còn N:N; cần cập nhật sổ.
-7. Chỉ sau khi kiểm tra port, volume và tài nguyên, mới **Deploy / Update the stack**.
+## Bảo mật
+- SpiderFoot native Digest auth dùng file **username:password dạng plaintext** trong volume (quyền 0600 theo shell `umask 077`); người có quyền Docker/root vẫn đọc được. Password cũng đi qua biến môi trường Docker.
+- HTTP Digest bảo vệ mật khẩu hơn HTTP Basic, nhưng **không mã hóa dữ liệu web**; chỉ truy cập LAN tin cậy, nên dùng HTTPS/VPN nếu nội dung nhạy cảm.
+- Không NAT 18894 ra Internet.
+- Không tự động cập nhật container chỉ vì file trên GitHub thay đổi (trừ khi GitOps auto update đang bật).
 
-Nếu Portainer đã quản lý Stack qua Git, cập nhật nguồn Git trên Stack hiện hữu. Nếu dùng Web editor, sao chép portainer-existing-image.yml và cập nhật đúng Stack spiderfoot. Giữ nguyên project/volume; đừng Remove volumes hay Pull image local từ Docker Hub.
-
-## Bước 3 — Xác minh sau Deploy
-
-- Portainer → Stacks → `spiderfoot` → Containers: xem container ứng dụng và `gateway` có Running không.
-- Published Ports dự kiến: gateway **`18894:18894`**; backend không publish cổng ngoài host.
-- Truy cập: **`http://LAN_IP:18894`**.
-- Nhập tên đăng nhập / mật khẩu tự đặt trong Environment variables.
-- Nếu `reference not found`: kiểm tra URL Git, ref và Compose path. `port is already allocated`: kiểm tra đúng Docker host. `502 Bad Gateway`: đọc logs backend. Lỗi build: xem Dockerfile và Docker endpoint.
-
-**Bảo mật:** Caddy Basic Auth qua HTTP LAN chưa mã hóa, đừng NAT ra Internet hoặc dùng mạng không tin cậy. Người có quyền quản trị Docker/Portainer có thể đọc biến môi trường. Đừng đưa mật khẩu, email, số điện thoại cá nhân hay API key lên GitHub công khai.
-
-[Sổ quản lý port tập trung](https://github.com/hoangthang0106/thang/blob/main/ports/PORT_REGISTRY.vi.md). Cổng tiếp theo dự kiến là **18899**, chỉ cấp sau khi kiểm tra thực tế.
+**Trạng thái:** GitHub đã đổi cấu hình; **ảnh cuối cho thấy hệ thống còn 2 container**, chưa có ảnh xác nhận sau khi cập nhật.
