@@ -25,8 +25,8 @@ services:
     entrypoint: ["/bin/sh", "-ec"]
     command:
       - |
-        HASH=$(caddy hash-password --algorithm bcrypt --plaintext "$AUTH_PASSWORD")
-        printf '%s\n' ':80 {' '  basic_auth {' "    $AUTH_USER $HASH" '  }' '  reverse_proxy spiderfoot:5001' '}' > /etc/caddy/Caddyfile
+        HASH=$$(caddy hash-password --algorithm bcrypt --plaintext "$$AUTH_PASSWORD")
+        printf '%s\n' ':80 {' '  basic_auth {' "    $$AUTH_USER $$HASH" '  }' '  reverse_proxy spiderfoot:5001' '}' > /etc/caddy/Caddyfile
         caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
         exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
 volumes:
