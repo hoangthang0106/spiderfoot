@@ -4,7 +4,15 @@ services:
   spiderfoot:
     image: local/osint-spiderfoot:portainer
     restart: unless-stopped
-    command: ["python", "sf.py", "-l", "0.0.0.0:18894"]
+    environment:
+      OSINT_AUTH_USER: "${OSINT_AUTH_USER:?SET_LOGIN_NAME}"
+      OSINT_AUTH_PASSWORD: "${OSINT_AUTH_PASSWORD:?SET_LOGIN_PASSWORD}"
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        umask 077
+        printf '%s:%s\n' "$OSINT_AUTH_USER" "$OSINT_AUTH_PASSWORD" > /var/lib/spiderfoot/passwd
+        exec python sf.py -l 0.0.0.0:18894
     ports:
       - "${LAN_IP:?SET_DOCKER_HOST_LAN_IP}:${SPIDERFOOT_HOST_PORT:-18894}:18894/tcp"
     security_opt:
