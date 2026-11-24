@@ -1,18 +1,18 @@
 # BỘ 5 OSINT WEB — PROXMOX / DOCKER / PORTAINER
 
-Đã tạo Compose riêng **trong từng fork** trên nhánh `portainer-lan`. Không chỉnh Compose upstream, không có port hoặc mật khẩu mới nào được cấu hình trên VM/LXC thực tế.
+**Sổ port chính:** https://github.com/hoangthang0106/thang/blob/main/ports/PORT_REGISTRY.vi.md (mỗi lần cài app mới cần kiểm tra và cập nhật sổ).\n\nĐã tạo Compose riêng **trong từng fork** trên nhánh `portainer-lan`. Không chỉnh Compose upstream, không có port hoặc mật khẩu mới nào được cấu hình trên VM/LXC thực tế.
 
 ## Cài lần lượt, không Deploy cùng lúc khi chưa kiểm tra tài nguyên
 
 | Thứ tự | Git Repository | Port host mặc định (ứng viên) | Internal | Build? |
 |---|---|---:|---:|---|
-| 1 | [SpiderFoot](https://github.com/hoangthang0106/spiderfoot/tree/portainer-lan) | **18994** | 5001 | Có |
-| 2 | [OpenOSINT](https://github.com/hoangthang0106/OpenOSINT/tree/portainer-lan) | **18995** | 8080 | Có |
-| 3 | [Maigret](https://github.com/hoangthang0106/maigret/tree/portainer-lan) | **18996** | 5000 | Không |
-| 4 | [PhoneInfoga](https://github.com/hoangthang0106/phoneinfoga/tree/portainer-lan) | **18997** | 5000 | Không |
-| 5 | [Social Analyzer](https://github.com/hoangthang0106/social-analyzer/tree/portainer-lan) | **18998** | 9005 | Có |
+| 1 | [SpiderFoot](https://github.com/hoangthang0106/spiderfoot/tree/portainer-lan) | **29001** | 5001 | Có |
+| 2 | [OpenOSINT](https://github.com/hoangthang0106/OpenOSINT/tree/portainer-lan) | **29002** | 8080 | Có |
+| 3 | [Maigret](https://github.com/hoangthang0106/maigret/tree/portainer-lan) | **29003** | 5000 | Không |
+| 4 | [PhoneInfoga](https://github.com/hoangthang0106/phoneinfoga/tree/portainer-lan) | **29004** | 5000 | Không |
+| 5 | [Social Analyzer](https://github.com/hoangthang0106/social-analyzer/tree/portainer-lan) | **29005** | 9005 | Có |
 
-Đã thấy trong hồ sơ IT-MANAGER: QRForge 18889 (có URL), qrframe 18890 (cấu hình), n8n 18891 (dự kiến), Immich 18892 (cấu hình), Stirling-PDF 18993 (dự kiến), GLPI 9090, Snipe-IT 8080, IT Knowledge Hub 8787, Caddy 8088, Portainer 9443/9000/9001, Proxmox 8006. **Không xác nhận bất cứ port nào đang chạy.** Các port 18994–18998 được dành riêng theo quy hoạch nhưng phải kiểm tra thực tế.
+Đã thấy trong hồ sơ IT-MANAGER: QRForge 18889 (có URL), qrframe 18890 (cấu hình), n8n 18891 (dự kiến), Immich 18892 (cấu hình), Stirling-PDF 18993 (dự kiến), GLPI 9090, Snipe-IT 8080, IT Knowledge Hub 8787, Caddy 8088, Portainer 9443/9000/9001, Proxmox 8006. **Không xác nhận bất cứ port nào đang chạy.** Các port 29001–29005 được giữ chỗ trong GitHub (chưa kiểm tra thực tế). **29006 là số tiếp theo dự kiến** cho OSINT; ứng dụng web mới khác sử dụng **29100** trở đi sau khi kiểm tra.
 
 ## Kiểm kê không sửa máy chủ
 
