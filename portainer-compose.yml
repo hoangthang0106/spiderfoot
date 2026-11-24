@@ -1,0 +1,34 @@
+# SpiderFoot; Portainer LAN Stack; fork: https://github.com/hoangthang0106/spiderfoot
+# Dedicated OSINT host range 29001-29099; host port is only a CANDIDATE. Confirm on actual VM/LXC before deployment.
+services:
+  spiderfoot:
+    build:
+      context: .
+      dockerfile: Dockerfile.portainer
+    image: local/osint-spiderfoot:portainer
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - spiderfoot_data:/var/lib/spiderfoot
+  gateway:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - spiderfoot
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${LAN_IP:?ENTER_LAN_IP}:${SPIDERFOOT_HOST_PORT:-29001}:80/tcp"
+    environment:
+      AUTH_USER: "${OSINT_AUTH_USER:?ENTER_USERNAME}"
+      AUTH_PASSWORD: "${OSINT_AUTH_PASSWORD:?ENTER_PASSWORD_IN_PORTAINER}"
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        HASH=$(caddy hash-password --algorithm bcrypt --plaintext "$AUTH_PASSWORD")
+        printf '%s\n' ':80 {' '  basic_auth {' "    $AUTH_USER $HASH" '  }' '  reverse_proxy spiderfoot:5001' '}' > /etc/caddy/Caddyfile
+        caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+        exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+volumes:
+  spiderfoot_data:
