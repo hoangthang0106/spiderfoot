@@ -1,35 +1,19 @@
-# SpiderFoot; Portainer LAN Stack; fork: https://github.com/hoangthang0106/spiderfoot
-# IT-MANAGER sequential LAN host/container port 18894:18894, verify host availability.
+# Optional new deployment: build SpiderFoot from this fork using Dockerfile.portainer.
+# Existing running stack should use docker-compose.yml, NOT this build version.
 services:
   spiderfoot:
     build:
       context: .
       dockerfile: Dockerfile.portainer
     image: local/osint-spiderfoot:portainer
-    command: ["python", "sf.py", "-l", "0.0.0.0:18894"]
     restart: unless-stopped
+    command: ["python", "sf.py", "-l", "0.0.0.0:18894"]
+    ports:
+      - "${LAN_IP:?SET_DOCKER_HOST_LAN_IP}:${SPIDERFOOT_HOST_PORT:-18894}:18894/tcp"
     security_opt:
       - no-new-privileges:true
     volumes:
       - spiderfoot-data:/var/lib/spiderfoot
-  gateway:
-    image: caddy:2
-    restart: unless-stopped
-    depends_on:
-      - spiderfoot
-    security_opt:
-      - no-new-privileges:true
-    ports:
-      - "${LAN_IP:?ENTER_LAN_IP}:${SPIDERFOOT_HOST_PORT:-18894}:18894/tcp"
-    environment:
-      AUTH_USER: "${OSINT_AUTH_USER:?ENTER_USERNAME}"
-      AUTH_PASSWORD: "${OSINT_AUTH_PASSWORD:?ENTER_PASSWORD_IN_PORTAINER}"
-    entrypoint: ["/bin/sh", "-ec"]
-    command:
-      - |
-        HASH=$$(caddy hash-password --algorithm bcrypt --plaintext "$$AUTH_PASSWORD")
-        printf '%s\n' ':18894 {' '  basic_auth {' "    $$AUTH_USER $$HASH" '  }' '  reverse_proxy spiderfoot:18894' '}' > /etc/caddy/Caddyfile
-        caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
-        exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+
 volumes:
   spiderfoot-data:
