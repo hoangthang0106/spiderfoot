@@ -1,6 +1,6 @@
 # SpiderFoot Portainer Stack - no reverse proxy, no added services.
 # This is the compose file used by the existing Git-managed stack "spiderfoot".
-# Use only in trusted LAN; there is no gateway login.
+# Use only in trusted LAN; SpiderFoot itself handles HTTP Digest login.
 # Verify TCP 18894 is unused on the actual Docker host before updating.
 services:
   spiderfoot:
@@ -14,7 +14,7 @@ services:
     command:
       - |
         umask 077
-        printf '%s:%s\n' "$OSINT_AUTH_USER" "$OSINT_AUTH_PASSWORD" > /var/lib/spiderfoot/passwd
+        printf '%s:%s\n' "$$OSINT_AUTH_USER" "$$OSINT_AUTH_PASSWORD" > /var/lib/spiderfoot/passwd
         exec python sf.py -l 0.0.0.0:18894
     ports:
       - "${LAN_IP:?SET_DOCKER_HOST_LAN_IP}:${SPIDERFOOT_HOST_PORT:-18894}:18894/tcp"
