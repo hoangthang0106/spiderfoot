@@ -18,7 +18,7 @@ Không coi port trống nếu chưa xem listener và port được đặt cho co
 
 ## 2. Tạo mật khẩu đã băm bằng Caddy
 
-Trên Docker host, người quản trị **chủ động chạy** `docker run --rm -it caddy:2 caddy hash-password` và nhập mật khẩu khi chương trình hỏi (không ghi mật khẩu trong lệnh hoặc Git).
+Trên Docker host, người quản trị **chủ động chạy** `docker run --rm -it caddy:2 caddy hash-password --algorithm bcrypt` và nhập mật khẩu khi chương trình hỏi (không ghi mật khẩu trong lệnh hoặc Git).
 Sao chép chuỗi bcrypt (`$2a$` hoặc `$2b$`) để nhập vào Portainer. **OSINT_AUTH_HASH là hash, không phải mật khẩu thuần.**
 
 ## 3. Portainer → Stacks → Add stack → Repository
