@@ -11,7 +11,7 @@ docker compose ls -a || true
 echo "=== Host listeners TCP + UDP (may require sudo for process names) ==="
 ss -lntup || true
 echo "=== OSINT candidate TCP ports ==="
-for port in 29001 29002 29003 29004 29005 29006 29100; do
+for port in 18994 18995 18996 18997 18998; do
   echo "--- Port ${port}/TCP ---"
   ss -H -ltn "( sport = :${port} )" || true
 done
