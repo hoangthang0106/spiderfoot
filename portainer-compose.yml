@@ -6,30 +6,22 @@ services:
       context: .
       dockerfile: Dockerfile.portainer
     image: local/osint-spiderfoot:portainer
-    command: ["python", "sf.py", "-l", "0.0.0.0:18894"]
+    environment:
+      OSINT_AUTH_USER: "${OSINT_AUTH_USER:?SET_LOGIN_NAME}"
+      OSINT_AUTH_PASSWORD: "${OSINT_AUTH_PASSWORD:?SET_LOGIN_PASSWORD}"
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        umask 077
+        printf '%s:%s\n' "$$OSINT_AUTH_USER" "$$OSINT_AUTH_PASSWORD" > /var/lib/spiderfoot/passwd
+        exec python sf.py -l 0.0.0.0:18894
+    ports:
+      - "${LAN_IP:?SET_DOCKER_HOST_LAN_IP}:${SPIDERFOOT_HOST_PORT:-18894}:18894/tcp"
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
     volumes:
       - spiderfoot-data:/var/lib/spiderfoot
-  gateway:
-    image: caddy:2
-    restart: unless-stopped
-    depends_on:
-      - spiderfoot
-    security_opt:
-      - no-new-privileges:true
-    ports:
-      - "${LAN_IP:?ENTER_LAN_IP}:${SPIDERFOOT_HOST_PORT:-18894}:18894/tcp"
-    environment:
-      AUTH_USER: "${OSINT_AUTH_USER:?ENTER_USERNAME}"
-      AUTH_PASSWORD: "${OSINT_AUTH_PASSWORD:?ENTER_PASSWORD_IN_PORTAINER}"
-    entrypoint: ["/bin/sh", "-ec"]
-    command:
-      - |
-        HASH=$$(caddy hash-password --algorithm bcrypt --plaintext "$$AUTH_PASSWORD")
-        printf '%s\n' ':18894 {' '  basic_auth {' "    $$AUTH_USER $$HASH" '  }' '  reverse_proxy spiderfoot:18894' '}' > /etc/caddy/Caddyfile
-        caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
-        exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+
 volumes:
   spiderfoot-data:
