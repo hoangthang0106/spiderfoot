@@ -31,10 +31,10 @@ Cả hai ref sau hiện hợp lệ:
    - `LAN_IP`: IP LAN **của VM/LXC Docker**, không đoán từ URL khác.
    - `OSINT_AUTH_USER`: username tự đặt.
    - `OSINT_AUTH_PASSWORD`: mật khẩu mạnh **tự đặt**, không dùng `OSINT_AUTH_HASH`. Container tự hash mật khẩu.
-   - `SPIDERFOOT_HOST_PORT`: chỉ nhập khi đã xác minh 29001 trùng và có port khác trống.
-10. **Kiểm tra port 29001** trên Docker host trước khi Deploy:
+   - `SPIDERFOOT_HOST_PORT`: chỉ nhập khi đã xác minh 18994 trùng và có port khác trống.
+10. **Kiểm tra port 18994** trên Docker host trước khi Deploy:
     ```bash
-    ss -ltnp '( sport = :29001 )'
+    ss -ltnp '( sport = :18994 )'
     docker ps -a --format 'table {{.Names}}\t{{.Ports}}'
     docker ps -aq | xargs -r docker inspect --format '{{.Name}} {{json .HostConfig.PortBindings}}'
     ```
@@ -50,10 +50,10 @@ Không chuyển sang `portainer-image-only.yml` trước khi image `local/osint-
 
 ## Kết quả mong đợi
 
-- Khi đã Deploy thành công và cả app + gateway Running: `http://LAN_IP:29001`.
+- Khi đã Deploy thành công và cả app + gateway Running: `http://LAN_IP:18994`.
 - Nhập `OSINT_AUTH_USER` và `OSINT_AUTH_PASSWORD` đã đặt.
-- Caddy chỉ publish cổng host `LAN_IP:29001`; SpiderFoot lắng nghe trên 5001 **bên trong Docker network**, không xung đột với cổng host 5001 của ứng dụng khác.
+- Caddy chỉ publish cổng host `LAN_IP:18994`; SpiderFoot lắng nghe trên 5001 **bên trong Docker network**, không xung đột với cổng host 5001 của ứng dụng khác.
 - **HTTP LAN Basic Auth chưa mã hóa**, chỉ dùng trong mạng tin cậy hoặc sau khi có HTTPS nội bộ; không NAT ra Internet.
-- Port 29001 mới *giữ chỗ trong sổ*, chưa xác minh thực tế trống.
+- Port 18994 mới *giữ chỗ trong sổ*, chưa xác minh thực tế trống.
 
 Đối chiếu sổ port: https://github.com/hoangthang0106/thang/blob/main/ports/PORT_REGISTRY.vi.md.
