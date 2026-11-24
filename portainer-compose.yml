@@ -10,7 +10,7 @@ services:
     security_opt:
       - no-new-privileges:true
     volumes:
-      - spiderfoot_data:/var/lib/spiderfoot
+      - spiderfoot-data:/var/lib/spiderfoot
   gateway:
     image: caddy:2
     restart: unless-stopped
@@ -31,4 +31,4 @@ services:
         caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
         exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
 volumes:
-  spiderfoot_data:
+  spiderfoot-data:
