@@ -1,38 +1,18 @@
-# For Portainer Web editor: NO Git clone and NO Docker build.
-# Use ONLY on the Docker endpoint already containing image 'spiderfoot:latest'.
-# Preserves the original Docker Compose volume name spiderfoot_spiderfoot-data
-# if existing Portainer Stack name remains exactly 'spiderfoot'.
-# NEVER create a second stack with the same container_name as a running one.
+# Web editor / image-only fallback for EXISTING stack spiderfoot.
+# No git build or proxy, no extra image.
+# Keep current stack name "spiderfoot" to preserve project volume.
 services:
   spiderfoot:
     image: spiderfoot:latest
     container_name: spiderfoot
     restart: unless-stopped
     command: ["sf.py", "-l", "0.0.0.0:18894"]
+    ports:
+      - "${LAN_IP:?SET_DOCKER_HOST_LAN_IP}:${SPIDERFOOT_HOST_PORT:-18894}:18894/tcp"
     volumes:
       - spiderfoot-data:/var/lib/spiderfoot
     security_opt:
       - no-new-privileges:true
-
-  gateway:
-    image: caddy:2
-    restart: unless-stopped
-    depends_on:
-      - spiderfoot
-    security_opt:
-      - no-new-privileges:true
-    ports:
-      - "${LAN_IP:?SET_DOCKER_HOST_LAN_IP}:${SPIDERFOOT_HOST_PORT:-18894}:18894/tcp"
-    environment:
-      AUTH_USER: "${OSINT_AUTH_USER:?SET_LOGIN_NAME}"
-      AUTH_PASSWORD: "${OSINT_AUTH_PASSWORD:?SET_LOGIN_PASSWORD}"
-    entrypoint: ["/bin/sh", "-ec"]
-    command:
-      - |
-        HASH=$$(caddy hash-password --algorithm bcrypt --plaintext "$$AUTH_PASSWORD")
-        printf '%s\n' ':18894 {' '  basic_auth {' "    $$AUTH_USER $$HASH" '  }' '  reverse_proxy spiderfoot:18894' '}' > /etc/caddy/Caddyfile
-        caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
-        exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
 
 volumes:
   spiderfoot-data:
