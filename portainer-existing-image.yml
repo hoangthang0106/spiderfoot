@@ -8,7 +8,7 @@ services:
     image: spiderfoot:latest
     container_name: spiderfoot
     restart: unless-stopped
-    command: ["sf.py", "-l", "0.0.0.0:18994"]
+    command: ["sf.py", "-l", "0.0.0.0:18894"]
     volumes:
       - spiderfoot-data:/var/lib/spiderfoot
     security_opt:
@@ -22,7 +22,7 @@ services:
     security_opt:
       - no-new-privileges:true
     ports:
-      - "${LAN_IP:?SET_DOCKER_HOST_LAN_IP}:${SPIDERFOOT_HOST_PORT:-18994}:80/tcp"
+      - "${LAN_IP:?SET_DOCKER_HOST_LAN_IP}:${SPIDERFOOT_HOST_PORT:-18894}:18894/tcp"
     environment:
       AUTH_USER: "${OSINT_AUTH_USER:?SET_LOGIN_NAME}"
       AUTH_PASSWORD: "${OSINT_AUTH_PASSWORD:?SET_LOGIN_PASSWORD}"
@@ -30,7 +30,7 @@ services:
     command:
       - |
         HASH=$$(caddy hash-password --algorithm bcrypt --plaintext "$$AUTH_PASSWORD")
-        printf '%s\n' ':80 {' '  basic_auth {' "    $$AUTH_USER $$HASH" '  }' '  reverse_proxy spiderfoot:18994' '}' > /etc/caddy/Caddyfile
+        printf '%s\n' ':18894 {' '  basic_auth {' "    $$AUTH_USER $$HASH" '  }' '  reverse_proxy spiderfoot:18894' '}' > /etc/caddy/Caddyfile
         caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
         exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
 
