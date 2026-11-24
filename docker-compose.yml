@@ -1,32 +1,39 @@
-version: "3"
-
-# Basic usage:
-#     $ docker-compose up
-#
-# Dev environment (code directory mapped into container):
-#     $ docker-compose -f docker-compose.yml -f docker-compose-dev.yml up
-#
-# Full image (all CLI tools installed):
-#     $ docker-compose -f docker-compose.yml -f docker-compose-full.yml up
-#
-# Spiderfoot data resides in a Docker volume
-#
-#     $ ls -lh /var/lib/docker/volumes/spiderfoot_spiderfoot-data/_data
-#       total 104K
-#       drwxr-xr-x 2 user user 4.0K Sep 22 09:51 cache
-#       -rw-r--r-- 1 user user 100K Sep 22 15:19 spiderfoot.db
-
+# IT-MANAGER: SpiderFoot LAN deployment on 18994/TCP.
+# This is the default docker-compose.yml used by existing Portainer Git stacks.
+# The original SpiderFoot service/image/container name and named data volume are preserved.
+# IMPORTANT: verify host port 18994 is free before updating a running stack.
 services:
   spiderfoot:
     build:
-      context: ./
-    volumes:
-      - spiderfoot-data:/var/lib/spiderfoot
+      context: .
     image: spiderfoot
     container_name: spiderfoot
-    ports:
-      - "5001:5001"
     restart: unless-stopped
+    command: ["sf.py", "-l", "0.0.0.0:18994"]
+    volumes:
+      - spiderfoot-data:/var/lib/spiderfoot
+    security_opt:
+      - no-new-privileges:true
+
+  gateway:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - spiderfoot
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${LAN_IP:?SET_DOCKER_HOST_LAN_IP}:${SPIDERFOOT_HOST_PORT:-18994}:80/tcp"
+    environment:
+      AUTH_USER: "${OSINT_AUTH_USER:?SET_LOGIN_NAME}"
+      AUTH_PASSWORD: "${OSINT_AUTH_PASSWORD:?SET_LOGIN_PASSWORD}"
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        HASH=$$(caddy hash-password --algorithm bcrypt --plaintext "$$AUTH_PASSWORD")
+        printf '%s\n' ':80 {' '  basic_auth {' "    $$AUTH_USER $$HASH" '  }' '  reverse_proxy spiderfoot:18994' '}' > /etc/caddy/Caddyfile
+        caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+        exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
 
 volumes:
   spiderfoot-data:
